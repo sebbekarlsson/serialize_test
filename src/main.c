@@ -8,6 +8,9 @@ typedef struct FRUIT_STRUCT
     char* name;
 } fruit_T;
 
+/**
+ * Initialize a new fruit with a name.
+ */
 fruit_T* init_fruit(const char* name)
 {
     fruit_T* fruit = calloc(1, sizeof(struct FRUIT_STRUCT));
@@ -17,6 +20,18 @@ fruit_T* init_fruit(const char* name)
     return fruit;
 }
 
+/**
+ * Deallocate a fruit.
+ */
+void free_fruit(fruit_T* fruit)
+{
+    free(fruit->name);
+    free(fruit);
+}
+
+/**
+ * Serialize a fruit into file.
+ */
 void fruit_serialize(fruit_T* fruit, FILE* fp)
 {
     size_t len = strlen(fruit->name) + 1;
@@ -24,6 +39,9 @@ void fruit_serialize(fruit_T* fruit, FILE* fp)
     fwrite(fruit->name, 1, len, fp);  // serialize actual string
 }
 
+/**
+ * Unserialize / read fruit from file.
+ */
 fruit_T* fruit_unserialize(FILE* fp)
 {
     // fetch length of string
@@ -48,6 +66,9 @@ typedef struct FRUIT_LIST_STRUCT
     size_t size;
 } fruit_list_T;
 
+/**
+ * Initialize a new fruit list.
+ */
 fruit_list_T* init_fruit_list()
 {
     fruit_list_T* fruit_list = calloc(1, sizeof(struct FRUIT_LIST_STRUCT));
@@ -57,6 +78,9 @@ fruit_list_T* init_fruit_list()
     return fruit_list;
 }
 
+/**
+ * Serialize a complete fruit list into a file
+ */
 void fruit_list_serialize(fruit_list_T* list, const char* filename)
 {
     // Write "list" to file.
@@ -69,6 +93,9 @@ void fruit_list_serialize(fruit_list_T* list, const char* filename)
     fclose(fp);
 }
 
+/**
+ * Add a fruit to a fruit list.
+ */
 void fruit_list_add_fruit(fruit_list_T* list, fruit_T* fruit)
 {
     list->size += 1;
@@ -81,13 +108,13 @@ void fruit_list_add_fruit(fruit_list_T* list, fruit_T* fruit)
     list->fruits[list->size-1] = fruit;
 }
 
+/**
+ * Deallocate memory for a fruit list.
+ */
 void free_fruit_list(fruit_list_T* list)
 {
     for (int i = 0; i < list->size; i++)
-    {
-        free(list->fruits[i]->name);
-        free(list->fruits[i]);
-    }
+        free_fruit(list->fruits[i]); 
 
     free(list->fruits);
     free(list);
