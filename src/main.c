@@ -24,6 +24,24 @@ void fruit_serialize(fruit_T* fruit, FILE* fp)
     fwrite(fruit->name, 1, len, fp);  // serialize actual string
 }
 
+fruit_T* fruit_unserialize(FILE* fp)
+{
+    // fetch length of string
+    size_t len;
+    fread(&len, sizeof(len), 1, fp);
+    
+    // allocate memory for string
+    char* name = malloc(len);
+
+    // read & copy string
+    fread(name, len, 1, fp);
+
+    fruit_T* fruit = init_fruit(name);
+    free(name);
+
+    return fruit;
+}
+
 typedef struct FRUIT_LIST_STRUCT
 {
     fruit_T** fruits;
@@ -37,6 +55,18 @@ fruit_list_T* init_fruit_list()
     fruit_list->size = 0;
 
     return fruit_list;
+}
+
+void fruit_list_serialize(fruit_list_T* list, const char* filename)
+{
+    // Write "list" to file.
+    FILE *fp = fopen(filename, "wb");
+    fwrite(&list->size, sizeof(int), 1, fp);
+
+    for (int i = 0; i < list->size; i++)
+        fruit_serialize(list->fruits[i], fp);
+
+    fclose(fp);
 }
 
 void fruit_list_add_fruit(fruit_list_T* list, fruit_T* fruit)
@@ -77,14 +107,7 @@ int main(int argc, char* argv[])
 
     const char filename[] = "list.dat";
 
-    // Write "list" to file.
-    FILE *fp = fopen(filename, "wb");
-    fwrite(&list->size, sizeof(int), 1, fp);
-
-    for (int i = 0; i < list->size; i++)
-        fruit_serialize(list->fruits[i], fp);
-
-    fclose(fp);
+    fruit_list_serialize(list, filename);
 
     free_fruit_list(list); 
 
@@ -96,21 +119,7 @@ int main(int argc, char* argv[])
     fread(&final_size, sizeof(int), 1, fp2);
     
     for (int i = 0; i < final_size; i++)
-    {
-        // fetch length of string
-        size_t len;
-        fread(&len, sizeof(len), 1, fp2);
-        
-        // allocate memory for string
-        char* name = malloc(len);
-
-        // read & copy string
-        fread(name, len, 1, fp2);
-
-        // add fruit to list
-        fruit_list_add_fruit(loaded_list, init_fruit(name));
-        free(name);
-    }
+        fruit_list_add_fruit(loaded_list, fruit_unserialize(fp2));
 
     fclose(fp2);
 
