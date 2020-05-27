@@ -85,7 +85,7 @@ void fruit_list_serialize(fruit_list_T* list, const char* filename)
 {
     // Write "list" to file.
     FILE *fp = fopen(filename, "wb");
-    fwrite(&list->size, sizeof(int), 1, fp);
+    fwrite(&list->size, sizeof(size_t), 1, fp);
 
     for (int i = 0; i < list->size; i++)
         fruit_serialize(list->fruits[i], fp);
@@ -120,17 +120,29 @@ void free_fruit_list(fruit_list_T* list)
     free(list);
 }
 
+fruit_list_T* fruit_list_unserialize(const char* filename)
+{
+    fruit_list_T* loaded_list = init_fruit_list();
+
+    FILE *fp2 = fopen(filename, "rb");
+    size_t final_size;
+    fread(&final_size, sizeof(size_t), 1, fp2);
+    
+    for (int i = 0; i < final_size; i++)
+        fruit_list_add_fruit(loaded_list, fruit_unserialize(fp2));
+
+    fclose(fp2);
+
+    return loaded_list;
+}
+
 int main(int argc, char* argv[])
 {
     fruit_list_T* list = init_fruit_list();
 
-    fruit_T* apple = init_fruit("apple");
-    fruit_T* pear = init_fruit("pear");
-    fruit_T* banana = init_fruit("banana");
-
-    fruit_list_add_fruit(list, apple);
-    fruit_list_add_fruit(list, pear);
-    fruit_list_add_fruit(list, banana);
+    fruit_list_add_fruit(list, init_fruit("apple"));
+    fruit_list_add_fruit(list, init_fruit("pear"));
+    fruit_list_add_fruit(list, init_fruit("banana"));
 
     const char filename[] = "list.bin";
 
@@ -138,17 +150,9 @@ int main(int argc, char* argv[])
 
     free_fruit_list(list); 
 
-    fruit_list_T* loaded_list = init_fruit_list();
 
     // Load "list" from file.
-    FILE *fp2 = fopen(filename, "rb");
-    size_t final_size;
-    fread(&final_size, sizeof(int), 1, fp2);
-    
-    for (int i = 0; i < final_size; i++)
-        fruit_list_add_fruit(loaded_list, fruit_unserialize(fp2));
-
-    fclose(fp2);
+    fruit_list_T* loaded_list = fruit_list_unserialize(filename);
 
     // print all fruits in loaded list
     for (int i = 0; i < loaded_list->size; i++)
