@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
     fruit_list_add_fruit(list, pear);
     fruit_list_add_fruit(list, banana);
 
-    const char filename[] = "list.dat";
+    const char filename[] = "list.bin";
 
     fruit_list_serialize(list, filename);
 
